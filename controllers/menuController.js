@@ -1,4 +1,3 @@
-const { default: mongoose } = require("mongoose")
 const connectDB = require("../db/connect")
 const Menu = require("../models/Menu")
 
@@ -30,7 +29,7 @@ async function getMenu(req, res) {
   }
 }
 
-async function getSingleFood(req, res) {
+async function getFoodById(req, res) {
   try {
     await connectDB()
 
@@ -101,4 +100,4 @@ async function deleteFood(req, res) {
   }
 }
 
-module.exports = {getMenu, getSingleFood, addFood, editFood, deleteFood}
+module.exports = {getMenu, getFoodById, addFood, editFood, deleteFood}
