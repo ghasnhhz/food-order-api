@@ -1,7 +1,7 @@
 const connectDB = require("../db/connect")
 const Menu = require("../models/Menu")
 
-async function getMenu(req, res) {
+async function getMenu(req, res, next) {
   try {
     await connectDB()
 
@@ -11,7 +11,10 @@ async function getMenu(req, res) {
       const foods = await Menu.find({ name })
 
       if (foods.length === 0) {
-        return res.status(200).json({message: "No foods found with that name"})
+        const error = new Error("No foods found with that name") // new Error() === error.message
+        error.statusCode = 200
+
+        return next(error)
       }
 
       res.status(200).json(foods)
@@ -19,39 +22,45 @@ async function getMenu(req, res) {
       const menu = await Menu.find({}, {__v: 0})
     
       if (menu.length === 0) {
-        return res.status(200).json({message: "No foods are available yet"})
+        const error = new Error("No foods are available yet")
+        error.statusCode = 200
+        return next(error)
       }
 
       res.status(200).json(menu)
     }
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
-async function getFoodById(req, res) {
+async function getFoodById(req, res, next) {
   try {
     await connectDB()
 
     const { id } = req.params
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({message: "Invalid Id"})
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+      return next(error)
     }
 
     const food = await Menu.findById(id)
     
     if (!food) {
-      res.status(404).json({message: "No food found"})
+      const error = new Error("No food found")
+      error.statusCode = 404
+      return next(err)
     }
 
     res.status(200).json(food)
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
-async function addFood(req, res) {
+async function addFood(req, res, next) {
   try {
     await connectDB()
   
@@ -61,15 +70,22 @@ async function addFood(req, res) {
 
     res.status(201).json(result)
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
-async function editFood(req, res) {
+async function editFood(req, res, next) {
   try {
     await connectDB()
 
     const { id } = req.params
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+
+      return next(error)
+    }
     const editedFood = req.body
     
     const updatedFood = await Menu.findByIdAndUpdate(id, editedFood, { new: true })
@@ -80,14 +96,17 @@ async function editFood(req, res) {
   }
 }
 
-async function deleteFood(req, res) {
+async function deleteFood(req, res, next) {
   try {
     await connectDB()
 
     const { id } = req.params
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({message: "Invalid Id"})
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+
+      return next(error)
     }
 
     const deletedFood = await Menu.findById(id)
@@ -96,7 +115,7 @@ async function deleteFood(req, res) {
 
     res.status(200).json({message: "Food successfully deleted", deletedFood})
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 

@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const connectDB = require("../db/connect")
 const Orders = require("../models/Order")
 
-async function getOrders(req, res) {
+async function getOrders(req, res, next) {
   try {
     await connectDB()
 
@@ -14,23 +14,29 @@ async function getOrders(req, res) {
         select: "-__v -createdAt -updatedAt"
       })
     if (orders.length === 0) {
-      return res.status(200).json({message: "No orders found"})
+      const error = new Error("No orders found")
+      error.statusCode = 200
+
+      return next(error)
     }
 
     res.status(200).json(orders)
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
-async function getOrderById(req, res) {
+async function getOrderById(req, res, next) {
   try {
     await connectDB()
 
     const { id } = req.params
    
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({message: "Invalid Id"})
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+
+      return next(error)
     }
 
     const order = await Orders.findById(id)
@@ -42,18 +48,20 @@ async function getOrderById(req, res) {
 
     res.status(200).json(order)
   } catch (err) {
-    res.status(500).json({error: err.message})
+    next(err)
   }
 }
 
-async function addOrder(req, res) {
+async function addOrder(req, res, next) {
   try {
     await connectDB()
 
     const order = req.body
 
     if (!order) {
-      return res.status(400).json({message: "Nothing is ordered"})
+      const error = new Error("Nothing is ordered")
+      error.statusCode = 400
+      return next(error)
     }
 
     const result = await Orders.create(order)
@@ -62,11 +70,11 @@ async function addOrder(req, res) {
       orderId: result.insertedId
     })
   } catch (err) {
-    res.status(500).json({error: err.message})
+    next(err)
   }
 }
 
-async function editOrder(req, res) {
+async function editOrder(req, res, next) {
   try {
     await connectDB()
 
@@ -74,26 +82,29 @@ async function editOrder(req, res) {
     const editedOrder = req.body
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({message: "Invalid Id"})
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+      return next(error)
     }
 
     const updatedOrder = await Orders.findByIdAndUpdate(id, editedOrder, { new: true })
     
     res.status(200).json({message: "Order successfully updated", updatedOrder})
   } catch (err) {
-    res.status(500).json({message: err.message})
+    next(err)
   }
 }
 
-async function deleteOrder(req, res) {
+async function deleteOrder(req, res, next) {
   try {
     await connectDB()
 
     const { id } = req.params
-    console.log(id)
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({message: "Invalid Id"})
+      const error = new Error("Invalid ID")
+      error.statusCode = 400
+      return next(error)
     }
 
     const deletedOrder = await Orders.findById(id)
@@ -102,7 +113,7 @@ async function deleteOrder(req, res) {
 
     res.status(200).json({message: "Order successfully deleted", deletedOrder})
   } catch (err) {
-    res.status(500).json({error: "Interval server error"})
+    next(err)
   }
 }
 module.exports = {getOrders, getOrderById, addOrder, editOrder, deleteOrder}
