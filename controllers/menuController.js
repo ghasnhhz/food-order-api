@@ -1,10 +1,8 @@
-const connectDB = require("../db/connect")
+const mongoose = require("mongoose")
 const Menu = require("../models/Menu")
 
 async function getMenu(req, res, next) {
   try {
-    await connectDB()
-
     const { name } = req.query
   
     if (name) {
@@ -36,8 +34,6 @@ async function getMenu(req, res, next) {
 
 async function getFoodById(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -51,7 +47,7 @@ async function getFoodById(req, res, next) {
     if (!food) {
       const error = new Error("No food found")
       error.statusCode = 404
-      return next(err)
+      return next(error)
     }
 
     res.status(200).json(food)
@@ -62,9 +58,13 @@ async function getFoodById(req, res, next) {
 
 async function addFood(req, res, next) {
   try {
-    await connectDB()
-  
     const newFood = req.body
+
+    if (!newFood.name || !newFood.price) {
+      const error = new Error("No food provided")
+      error.statusCode = 400
+      return next(error)
+    }
 
     const result = await Menu.create(newFood)
 
@@ -76,8 +76,6 @@ async function addFood(req, res, next) {
 
 async function editFood(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -89,6 +87,10 @@ async function editFood(req, res, next) {
     const editedFood = req.body
     
     const updatedFood = await Menu.findByIdAndUpdate(id, editedFood, { new: true })
+
+    if (!updatedFood) {
+      return res.status(404).json({message: "Food not found"});
+    }
     
     res.status(200).json({message: "Food is updated successfully", updatedFood})
   } catch (err) {
@@ -98,8 +100,6 @@ async function editFood(req, res, next) {
 
 async function deleteFood(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -118,5 +118,7 @@ async function deleteFood(req, res, next) {
     next(err)
   }
 }
+
+
 
 module.exports = {getMenu, getFoodById, addFood, editFood, deleteFood}

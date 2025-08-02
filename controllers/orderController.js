@@ -1,12 +1,9 @@
 require("../models/Menu")
 const mongoose = require("mongoose")
-const connectDB = require("../db/connect")
 const Orders = require("../models/Order")
 
 async function getOrders(req, res, next) {
   try {
-    await connectDB()
-
     const orders = await Orders.find()
       .select("-__v -createdAt -updatedAt")
       .populate({
@@ -28,8 +25,6 @@ async function getOrders(req, res, next) {
 
 async function getOrderById(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
    
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -54,12 +49,10 @@ async function getOrderById(req, res, next) {
 
 async function addOrder(req, res, next) {
   try {
-    await connectDB()
-
     const order = req.body
 
     if (!order) {
-      const error = new Error("Nothing is ordered")
+      const error = new Error("Order is not complete")
       error.statusCode = 400
       return next(error)
     }
@@ -67,7 +60,7 @@ async function addOrder(req, res, next) {
     const result = await Orders.create(order)
     res.status(201).json({
       message: "Your food is successfully added to the orders queue.",
-      orderId: result.insertedId
+      orderId: result._id
     })
   } catch (err) {
     next(err)
@@ -76,8 +69,6 @@ async function addOrder(req, res, next) {
 
 async function editOrder(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
     const editedOrder = req.body
     
@@ -97,8 +88,6 @@ async function editOrder(req, res, next) {
 
 async function deleteOrder(req, res, next) {
   try {
-    await connectDB()
-
     const { id } = req.params
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
