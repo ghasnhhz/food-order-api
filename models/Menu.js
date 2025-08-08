@@ -5,7 +5,10 @@ const menuSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  price: String,
+  price: {
+    type: String,
+    required: true
+  },
   createdAt: {
     type: Date,
     default: () => Date.now(),

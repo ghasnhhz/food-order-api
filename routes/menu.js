@@ -1,6 +1,9 @@
 const express = require("express")
-const {getMenu, getFoodById, addFood, editFood, deleteFood} = require("../controllers/menuController")
+const { getMenu, getFoodById, addFood, editFood, deleteFood } = require("../controllers/menuController")
+const { authenticateToken } = require("../middlewares/authMiddleware")
 const router = express.Router()
+
+//express().use(authenticateToken)
 
 router.get("/", getMenu)
 router.get("/:id", getFoodById)

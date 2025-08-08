@@ -9,7 +9,7 @@ const Menu = require("../models/Menu")
 // since it is an ObjectId, and returned response._id is a string
 let testFood
 
-beforeEach(async () => {
+beforeAll(async () => {
   try {
     const mongoURI = process.env.MONGO_COMPASS_URI
 
