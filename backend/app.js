@@ -5,13 +5,18 @@ const menu = require("./routes/menu")
 const orders = require("./routes/orders")
 const errorHandler = require("./middlewares/errorHandler")
 const cookieParser = require("cookie-parser")
-const {authenticateToken} = require("./middlewares/authMiddleware")
+const { authenticateToken } = require("./middlewares/authMiddleware")
+const cors = require('cors');
 const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(cors({
+  origin: 'http://localhost:3000', // frontend URL
+  credentials: true
+}));
 
-app.use("/api", authRoutes)
+app.use("/auth", authRoutes)
 app.use("/menu", authenticateToken, menu)
 app.use("/orders", authenticateToken, orders)
 

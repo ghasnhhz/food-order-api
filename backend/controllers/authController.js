@@ -9,21 +9,56 @@ async function register(req, res, next) {
     if (!username || !password) {
       const error = new Error("username and password are required")
       error.statusCode = 400
-      
-      next(error)
+      return next(error)
     }
 
     const existingUser = await User.findOne({ username })
     if (existingUser) {
       const error = new Error("Username is already taken")
       error.statusCode = 409
-      
-      next(error)
+      return next(error)
     }
 
-    await User.create({ username, password })
+    // Create user
+    const newUser = await User.create({ username, password })
     
-    res.status(201).json({message: "User registered successfully"})
+    // AUTO-LOGIN: Generate tokens immediately after registration
+    const accessToken = jwt.sign(
+      { id: newUser._id, username: newUser.username }, 
+      process.env.ACCESS_TOKEN_SECRET, 
+      { expiresIn: '10m' }
+    )
+    
+    const refreshToken = jwt.sign(
+      { id: newUser._id}, 
+      process.env.REFRESH_TOKEN_SECRET, 
+      { expiresIn: '7d' }
+    )
+    
+    // Set refresh token cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
+    // Save refresh token to database
+    await RefreshToken.create({
+      token: refreshToken,
+      userId: newUser._id
+    })
+
+    // Return tokens and user info (same as login)
+    res.status(201).json({
+      message: "User registered and logged in successfully",
+      token: accessToken,
+      user: {
+        _id: newUser._id,
+        username: newUser.username,
+        role: newUser.role 
+      }
+    })
   } catch (err) {
     next(err)
   }
@@ -58,7 +93,7 @@ async function login(req, res, next) {
       next(error)
     }
 
-    const accessToken = jwt.sign({ id: user._id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' })
+    const accessToken = jwt.sign({ id: user._id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' })
     const refreshToken = jwt.sign({ id: user._id}, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' })
     
     res.cookie('refreshToken', refreshToken, {
