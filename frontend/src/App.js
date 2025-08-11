@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './components/Register';
 import Login from './components/Login';
 import Menu from './Menu';
+import Cart from './components/Cart';
+import OrderConfirmation from './components/OrderConfirmation';
 import { isAuthenticated } from './api';
 
 // Protected Route Component
@@ -67,6 +69,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <Menu />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/order-confirmation" 
+            element={
+              <ProtectedRoute>
+                <OrderConfirmation />
               </ProtectedRoute>
             } 
           />

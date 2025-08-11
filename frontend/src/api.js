@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000";
@@ -65,15 +64,6 @@ API.interceptors.response.use(
 export async function registerUser(userData) {
   try {
     const response = await API.post('/auth/register', userData);
-    
-    // Check if registration returned tokens (auto-login)
-    if (response.data.token) {
-      // Save token and user info for auto-login
-      const { token, user } = response.data;
-      localStorage.setItem('accessToken', token);
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-    
     return { success: true, data: response.data };
   } catch (error) {
     return { 
@@ -133,6 +123,56 @@ export function isAuthenticated() {
   const token = localStorage.getItem('accessToken');
   const user = localStorage.getItem('user');
   return !!(token && user);
+}
+
+// Order API functions
+export async function addOrder(orderData) {
+  try {
+    const response = await API.post('/orders', orderData);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to place order' 
+    };
+  }
+}
+
+export async function getOrders() {
+  try {
+    const response = await API.get('/orders');
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to fetch orders' 
+    };
+  }
+}
+
+export async function getOrderById(orderId) {
+  try {
+    const response = await API.get(`/orders/${orderId}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to fetch order' 
+    };
+  }
+}
+
+// Search menu by name
+export async function searchMenu(name) {
+  try {
+    const response = await API.get(`/menu?name=${name}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to search menu' 
+    };
+  }
 }
 
 // Utility function to get current user
